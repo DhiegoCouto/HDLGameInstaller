@@ -10,26 +10,18 @@ jobs:
   build:
     name: HDLGameInstaller OPLCOV1
     runs-on: ubuntu-latest
-    container: ps2dev/ps2dev:v1.0
 
     steps:
-      - name: Install dependencies
-        run: apk add build-base git zip python3
-
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Mark workspace safe
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Apply OPLCOV1 patch
-        run: python3 oplcov1/patch_oplcov1.py "$GITHUB_WORKSPACE"
-
-      - name: Compile
-        run: make
-
-      - name: Rename ELF
-        run: cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf
+      - name: Patch and compile inside PS2DEV container
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            ps2dev/ps2dev:v1.0 \
+            sh -lc 'apk add build-base git python3 && python3 oplcov1/patch_oplcov1.py /src && make && cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
 
       - name: Upload ELF
         uses: actions/upload-artifact@v4
