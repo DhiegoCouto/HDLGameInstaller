@@ -1,0 +1,35 @@
+name: Diagnostic unpacked ELF
+
+on:
+  push:
+    branches:
+      - diag-unpacked-elf
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build raw ELF with PS2SDK v1.0 image
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            ps2dev/ps2dev:v1.0 \
+            sh -lc 'apk add --no-cache build-base git zip >/dev/null && make clean && make'
+
+      - name: Inspect ELF
+        run: |
+          file HDLGameInstaller.elf
+          ls -lh HDLGameInstaller.elf
+          sha256sum HDLGameInstaller.elf
+
+      - name: Upload raw ELF
+        uses: actions/upload-artifact@v4
+        with:
+          name: HDLGameInstaller-UNPACKED-DIAG
+          path: HDLGameInstaller.elf
+          if-no-files-found: error
