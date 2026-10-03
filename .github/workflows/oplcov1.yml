@@ -8,41 +8,36 @@ on:
 
 jobs:
   build:
-    name: HDLGameInstaller OPLCOV1
+    name: HDLGameInstaller v0.821 baseline
     runs-on: ubuntu-latest
+    container: ps2dev/ps2dev:v1.0
 
     steps:
-      - name: Checkout
+      - name: Install dependencies
+        run: |
+          apk add build-base git zip
+
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Apply only SDK compatibility patch
+      - name: Switch working tree to official v0.821 source
         run: |
-          python3 oplcov1/patch_legacy_sdk.py "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --tags --force
+          git checkout v0.821 -- .
+          git status --short
 
-      - name: Build baseline with PS2DEV v1.3.0
+      - name: Compile exactly like official workflow
         run: |
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE:/src" \
-            -w /src \
-            ps2dev/ps2dev:v1.3.0 \
-            sh -lc 'set -e; apk add --no-cache build-base git zip; make EE_CFLAGS="-D_EE -DNEWLIB_PORT_AWARE -include io_common.h -include errno.h -include malloc.h -std=gnu89 -Wno-implicit-function-declaration -Os -mgpopt -G9760"; cp HDLGameInstaller.elf HDLGameInstaller_BASELINE_GCC11.elf; make clean'
+          make
+          cp HDLGameInstaller.elf HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf
+          file HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf
+          sha256sum HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf
 
-      - name: Apply OPLCOV1 patch
-        run: |
-          python3 oplcov1/patch_oplcov1.py "$GITHUB_WORKSPACE"
-
-      - name: Build OPLCOV1 with same toolchain
-        run: |
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE:/src" \
-            -w /src \
-            ps2dev/ps2dev:v1.3.0 \
-            sh -lc 'set -e; apk add --no-cache build-base git zip; make EE_CFLAGS="-D_EE -DNEWLIB_PORT_AWARE -include io_common.h -include errno.h -include malloc.h -std=gnu89 -Wno-implicit-function-declaration -Os -mgpopt -G9760"; cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1_GCC11.elf; file HDLGameInstaller_BASELINE_GCC11.elf HDLGameInstaller_OPLCOV1_GCC11.elf; sha256sum HDLGameInstaller_BASELINE_GCC11.elf HDLGameInstaller_OPLCOV1_GCC11.elf'
-
-      - name: Upload test pair
+      - name: Upload baseline ELF
         uses: actions/upload-artifact@v4
         with:
-          name: HDLGameInstaller-GCC11-test-pair
-          path: |
-            HDLGameInstaller_BASELINE_GCC11.elf
-            HDLGameInstaller_OPLCOV1_GCC11.elf
+          name: HDLGameInstaller-v0821-baseline-official-env
+          path: HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf
