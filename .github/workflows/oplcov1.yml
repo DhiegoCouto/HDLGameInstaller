@@ -40,6 +40,7 @@ jobs:
               rm -rf /tmp/ps2-packer
               git clone --depth 1 https://github.com/ps2dev/ps2-packer.git /tmp/ps2-packer
               cd /tmp/ps2-packer
+              sed -i "s/-Werror//g" stub/Makefile
               make ps2-packer-lite LZMA_MT=0
               echo "=== pack baseline ==="
               ./ps2-packer-lite -v /src/HDLGameInstaller_v0821_UNPACKED.elf /src/HDLGameInstaller_v0821_PACKED.elf
