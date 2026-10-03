@@ -15,8 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Apply OPLCOV1 patch on runner
-        run: python3 oplcov1/patch_oplcov1.py "$GITHUB_WORKSPACE"
+      - name: Apply OPLCOV1 and legacy compatibility patches
+        run: |
+          python3 oplcov1/patch_oplcov1.py "$GITHUB_WORKSPACE"
+          python3 oplcov1/patch_legacy_sdk.py "$GITHUB_WORKSPACE"
 
       - name: Compile inside current PS2DEV container
         run: |
