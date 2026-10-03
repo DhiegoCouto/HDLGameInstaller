@@ -19,16 +19,16 @@ jobs:
         run: |
           python3 oplcov1/patch_oplcov1.py "$GITHUB_WORKSPACE"
 
-      - name: Compile with official PS2DEV v1.0 toolchain
+      - name: Compile with PS2DEV v1.3.0 toolchain
         run: |
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
-            ps2dev/ps2dev:v1.0 \
-            sh -lc 'set -e; apk add --no-cache build-base git zip; mips64r5900el-ps2-elf-gcc --version; make EE_CC=mips64r5900el-ps2-elf-gcc EE_AS=mips64r5900el-ps2-elf-as; cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
+            ps2dev/ps2dev:v1.3.0 \
+            sh -lc 'set -e; apk add --no-cache build-base git zip; echo "EE tools:"; ls -la "$PS2DEV/ee/bin" | head -40; command -v ee-gcc || true; command -v mips64r5900el-ps2-elf-gcc || true; make; cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
 
       - name: Upload ELF
         uses: actions/upload-artifact@v4
         with:
-          name: HDLGameInstaller-OPLCOV1-v1.0toolchain
+          name: HDLGameInstaller-OPLCOV1-v1.3toolchain
           path: HDLGameInstaller_OPLCOV1.elf
