@@ -26,7 +26,7 @@ jobs:
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             ps2dev/ps2dev:latest \
-            sh -lc 'apk add --no-cache make cmake git; export PS2DEV=/usr/local/ps2dev; export PS2SDK=$PS2DEV/ps2sdk; export GSKIT=$PS2DEV/gsKit; export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin:$PS2SDK/bin; rm -rf /tmp/gsKit; git clone --depth 1 https://github.com/ps2dev/gsKit.git /tmp/gsKit; sed -i "s/set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)/set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)/" /tmp/gsKit/CMakeLists.txt; cd /tmp/gsKit; make install; cd /src; make EE_CFLAGS="-D_EE -DNEWLIB_PORT_AWARE -include io_common.h -include errno.h -include malloc.h -std=gnu89 -Wno-implicit-function-declaration -Os -mgpopt -G9760 -mno-abicalls -fno-pic" && cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
+            sh -lc 'set -e; apk add --no-cache make cmake git pkgconf; export PS2DEV=/usr/local/ps2dev; export PS2SDK=$PS2DEV/ps2sdk; export GSKIT=$PS2DEV/gsKit; export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin:$PS2SDK/bin; rm -rf /tmp/gsKit; git clone --depth 1 https://github.com/ps2dev/gsKit.git /tmp/gsKit; sed -i "s/set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)/set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)/" /tmp/gsKit/CMakeLists.txt; grep CMAKE_INTERPROCEDURAL_OPTIMIZATION /tmp/gsKit/CMakeLists.txt; cd /tmp/gsKit; make install; cd /src; make EE_CFLAGS="-D_EE -DNEWLIB_PORT_AWARE -include io_common.h -include errno.h -include malloc.h -std=gnu89 -Wno-implicit-function-declaration -Os -mgpopt -G9760 -mno-abicalls -fno-pic"; cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
 
       - name: Upload ELF
         uses: actions/upload-artifact@v4
