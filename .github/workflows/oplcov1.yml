@@ -24,7 +24,7 @@ jobs:
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             ps2dev/ps2dev:latest \
-            sh -lc 'command -v make >/dev/null 2>&1 || apk add --no-cache make; export PS2DEV=/usr/local/ps2dev; export PS2SDK=$PS2DEV/ps2sdk; export GSKIT=$PS2DEV/gsKit; export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin:$PS2SDK/bin; make EE_CFLAGS="-D_EE -DNEWLIB_PORT_AWARE -include io_common.h -std=gnu89 -Wno-implicit-function-declaration -Os -mgpopt -G9760 -mno-abicalls -fno-pic" && cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
+            sh -lc 'command -v make >/dev/null 2>&1 || apk add --no-cache make; export PS2DEV=/usr/local/ps2dev; export PS2SDK=$PS2DEV/ps2sdk; export GSKIT=$PS2DEV/gsKit; export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin:$PS2SDK/bin; make EE_CFLAGS="-D_EE -DNEWLIB_PORT_AWARE -include io_common.h -include errno.h -include malloc.h -std=gnu89 -Wno-implicit-function-declaration -Os -mgpopt -G9760 -mno-abicalls -fno-pic" && cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
 
       - name: Upload ELF
         uses: actions/upload-artifact@v4
