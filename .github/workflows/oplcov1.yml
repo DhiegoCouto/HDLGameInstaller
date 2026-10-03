@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: HDLGameInstaller v0.821 baseline
+    name: HDLGameInstaller v0.821 packed baseline
     runs-on: ubuntu-latest
 
     steps:
@@ -24,16 +24,36 @@ jobs:
           git checkout v0.821 -- .
           git status --short
 
-      - name: Compile with official PS2DEV v1.0 image
+      - name: Compile and pack with PS2DEV v1.0
         run: |
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             ps2dev/ps2dev:v1.0 \
-            sh -c 'set -e; echo "$PATH"; command -v ee-gcc; apk add --no-cache build-base git zip; make; cp HDLGameInstaller.elf HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf; file HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf; sha256sum HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf'
+            sh -c '
+              set -e
+              apk add --no-cache build-base git zip
+              echo "=== build HDLGameInstaller ==="
+              make
+              cp HDLGameInstaller.elf HDLGameInstaller_v0821_UNPACKED.elf
+              echo "=== build ps2-packer-lite ==="
+              rm -rf /tmp/ps2-packer
+              git clone --depth 1 https://github.com/ps2dev/ps2-packer.git /tmp/ps2-packer
+              cd /tmp/ps2-packer
+              make ps2-packer-lite LZMA_MT=0
+              echo "=== pack baseline ==="
+              ./ps2-packer-lite -v /src/HDLGameInstaller_v0821_UNPACKED.elf /src/HDLGameInstaller_v0821_PACKED.elf
+              cd /src
+              echo "=== file headers ==="
+              file HDLGameInstaller_v0821_UNPACKED.elf HDLGameInstaller_v0821_PACKED.elf
+              mips64r5900el-ps2-elf-readelf -h -l HDLGameInstaller_v0821_PACKED.elf || true
+              sha256sum HDLGameInstaller_v0821_UNPACKED.elf HDLGameInstaller_v0821_PACKED.elf
+            '
 
-      - name: Upload baseline ELF
+      - name: Upload packed baseline pair
         uses: actions/upload-artifact@v4
         with:
-          name: HDLGameInstaller-v0821-baseline-official-env
-          path: HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf
+          name: HDLGameInstaller-v0821-packed-baseline
+          path: |
+            HDLGameInstaller_v0821_UNPACKED.elf
+            HDLGameInstaller_v0821_PACKED.elf
