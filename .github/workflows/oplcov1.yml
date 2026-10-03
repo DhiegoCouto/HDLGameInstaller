@@ -10,31 +10,27 @@ jobs:
   build:
     name: HDLGameInstaller v0.821 baseline
     runs-on: ubuntu-latest
-    container: ps2dev/ps2dev:v1.0
 
     steps:
-      - name: Install dependencies
-        run: |
-          apk add build-base git zip
-
-      - name: Checkout repository
+      - name: Checkout helper branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Switch working tree to official v0.821 source
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git fetch --tags --force
+          git remote add upstream https://github.com/ps2homebrew/HDLGameInstaller.git || true
+          git fetch upstream tag v0.821 --force
           git checkout v0.821 -- .
           git status --short
 
-      - name: Compile exactly like official workflow
+      - name: Compile with official PS2DEV v1.0 image
         run: |
-          make
-          cp HDLGameInstaller.elf HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf
-          file HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf
-          sha256sum HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            ps2dev/ps2dev:v1.0 \
+            sh -c 'set -e; echo "$PATH"; command -v ee-gcc; apk add --no-cache build-base git zip; make; cp HDLGameInstaller.elf HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf; file HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf; sha256sum HDLGameInstaller_v0821_BASELINE_OFFICIAL_ENV.elf'
 
       - name: Upload baseline ELF
         uses: actions/upload-artifact@v4
