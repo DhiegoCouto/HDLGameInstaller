@@ -25,7 +25,7 @@ jobs:
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             ps2dev/ps2dev:v1.0 \
-            sh -lc 'set -e; apk add --no-cache build-base git zip; make; cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
+            sh -lc 'set -e; apk add --no-cache build-base git zip; mips64r5900el-ps2-elf-gcc --version; make EE_CC=mips64r5900el-ps2-elf-gcc EE_AS=mips64r5900el-ps2-elf-as; cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
 
       - name: Upload ELF
         uses: actions/upload-artifact@v4
