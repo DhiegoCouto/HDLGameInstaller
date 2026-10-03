@@ -15,9 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Apply OPLCOV1 patch
+      - name: Apply OPLCOV1 and compatibility patches
         run: |
           python3 oplcov1/patch_oplcov1.py "$GITHUB_WORKSPACE"
+          python3 oplcov1/patch_legacy_sdk.py "$GITHUB_WORKSPACE"
 
       - name: Compile with PS2DEV v1.3.0 toolchain
         run: |
@@ -25,7 +26,7 @@ jobs:
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             ps2dev/ps2dev:v1.3.0 \
-            sh -lc 'set -e; apk add --no-cache build-base git zip; echo "EE tools:"; ls -la "$PS2DEV/ee/bin" | head -40; command -v ee-gcc || true; command -v mips64r5900el-ps2-elf-gcc || true; make; cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
+            sh -lc 'set -e; apk add --no-cache build-base git zip; make EE_CFLAGS="-D_EE -DNEWLIB_PORT_AWARE -include io_common.h -include errno.h -include malloc.h -std=gnu89 -Wno-implicit-function-declaration -Os -mgpopt -G9760"; cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf; file HDLGameInstaller_OPLCOV1.elf; sha256sum HDLGameInstaller_OPLCOV1.elf'
 
       - name: Upload ELF
         uses: actions/upload-artifact@v4
