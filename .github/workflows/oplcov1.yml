@@ -21,7 +21,7 @@ jobs:
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             ps2dev/ps2dev:v1.0 \
-            sh -lc 'apk add build-base git python3 && python3 oplcov1/patch_oplcov1.py /src && make && cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
+            sh -lc 'apk add build-base git python3 && export PS2DEV=/usr/local/ps2dev && export PS2SDK=$PS2DEV/ps2sdk && export GSKIT=$PS2DEV/gsKit && export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin:$PS2SDK/bin && python3 oplcov1/patch_oplcov1.py /src && make && cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
 
       - name: Upload ELF
         uses: actions/upload-artifact@v4
