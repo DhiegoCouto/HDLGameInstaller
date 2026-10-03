@@ -24,7 +24,7 @@ jobs:
           git checkout v0.821 -- .
           git status --short
 
-      - name: Compile and pack with PS2DEV v1.0
+      - name: Compile HDLGameInstaller with PS2DEV v1.0
         run: |
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
@@ -33,22 +33,30 @@ jobs:
             sh -c '
               set -e
               apk add --no-cache build-base git zip
-              echo "=== build HDLGameInstaller ==="
               make
               cp HDLGameInstaller.elf HDLGameInstaller_v0821_UNPACKED.elf
-              echo "=== build ps2-packer-lite ==="
+              file HDLGameInstaller_v0821_UNPACKED.elf
+              sha256sum HDLGameInstaller_v0821_UNPACKED.elf
+            '
+
+      - name: Pack baseline with current ps2-packer on PS2DEV v1.3.0
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            ps2dev/ps2dev:v1.3.0 \
+            sh -lc '
+              set -e
+              apk add --no-cache build-base git zip
               rm -rf /tmp/ps2-packer
               git clone --depth 1 https://github.com/ps2dev/ps2-packer.git /tmp/ps2-packer
               cd /tmp/ps2-packer
-              sed -i "s/-Werror//g" stub/Makefile
               make ps2-packer-lite LZMA_MT=0
-              echo "=== pack baseline ==="
               ./ps2-packer-lite -v /src/HDLGameInstaller_v0821_UNPACKED.elf /src/HDLGameInstaller_v0821_PACKED.elf
               cd /src
-              echo "=== file headers ==="
-              file HDLGameInstaller_v0821_UNPACKED.elf HDLGameInstaller_v0821_PACKED.elf
+              file HDLGameInstaller_v0821_PACKED.elf
               mips64r5900el-ps2-elf-readelf -h -l HDLGameInstaller_v0821_PACKED.elf || true
-              sha256sum HDLGameInstaller_v0821_UNPACKED.elf HDLGameInstaller_v0821_PACKED.elf
+              sha256sum HDLGameInstaller_v0821_PACKED.elf
             '
 
       - name: Upload packed baseline pair
