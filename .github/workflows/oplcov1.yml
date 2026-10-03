@@ -15,13 +15,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Patch and compile inside PS2DEV container
+      - name: Apply OPLCOV1 patch on runner
+        run: python3 oplcov1/patch_oplcov1.py "$GITHUB_WORKSPACE"
+
+      - name: Compile inside PS2DEV container
         run: |
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             ps2dev/ps2dev:v1.0 \
-            sh -lc 'apk add build-base git python3 && export PS2DEV=/usr/local/ps2dev && export PS2SDK=$PS2DEV/ps2sdk && export GSKIT=$PS2DEV/gsKit && export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin:$PS2SDK/bin && python3 oplcov1/patch_oplcov1.py /src && make && cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
+            sh -lc 'command -v make >/dev/null 2>&1 || apk add --no-cache make; export PS2DEV=/usr/local/ps2dev; export PS2SDK=$PS2DEV/ps2sdk; export GSKIT=$PS2DEV/gsKit; export PATH=$PATH:$PS2DEV/bin:$PS2DEV/ee/bin:$PS2DEV/iop/bin:$PS2DEV/dvp/bin:$PS2SDK/bin; make; cp HDLGameInstaller.elf HDLGameInstaller_OPLCOV1.elf'
 
       - name: Upload ELF
         uses: actions/upload-artifact@v4
