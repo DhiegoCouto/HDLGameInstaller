@@ -19,7 +19,7 @@ jobs:
             -v "$GITHUB_WORKSPACE:/src" \
             -w /src \
             ps2dev/ps2dev:v1.0 \
-            sh -lc 'apk add --no-cache build-base git zip >/dev/null && make clean && make'
+            sh -c 'apk add --no-cache build-base git zip >/dev/null && echo "$PATH" && which ee-gcc && make clean && make'
 
       - name: Inspect ELF
         run: |
